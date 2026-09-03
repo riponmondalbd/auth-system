@@ -15,6 +15,7 @@ model User {
 
   emailVerificationTokens EmailVerificationToken[]
   passwordResetTokens PasswordResetToken[]
+  refreshTokens RefreshToken[]
 
   createdAt TimestamptzString @default(now())
   updatedAt temporal.updatedAtString()
@@ -40,6 +41,20 @@ model PasswordResetToken{
 
   expiresAt TimestamptzString
   used Boolean @default(false)
+
+  createdAt TimestamptzString @default(now())
+}
+
+model RefreshToken{
+  id Int @id @default(autoincrement())
+
+  tokenHash String @unique
+
+  userId Int
+  user User @relation(fields:[userId],references:[id],onDelete: Cascade)
+
+  expiresAt TimestamptzString
+  revoked Boolean @default(false)
 
   createdAt TimestamptzString @default(now())
 }
