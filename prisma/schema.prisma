@@ -13,7 +13,7 @@ model User {
 
   isVerified Boolean @default(false)
 
-  EmailVerificationToken EmailVerificationToken[]
+  emailVerificationToken EmailVerificationToken[]
 
   createdAt TimestamptzString @default(now())
   updatedAt temporal.updatedAtString()
