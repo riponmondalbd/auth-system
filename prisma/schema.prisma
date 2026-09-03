@@ -13,7 +13,19 @@ model User {
 
   isVerified Boolean @default(false)
 
+  EmailVerificationToken EmailVerificationToken[]
+
   createdAt TimestamptzString @default(now())
   updatedAt temporal.updatedAtString()
 }
 
+model EmailVerificationToken{
+  id Int @id @default(autoincrement())
+  token String @unique
+
+  userId Int
+  user User @relation(fields:[userId], references:[id], onDelete: Cascade)
+
+  expiresAt TimestamptzString
+  createdAt TimestamptzString @default(now())
+}
