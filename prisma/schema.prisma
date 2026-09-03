@@ -13,8 +13,8 @@ model User {
 
   isVerified Boolean @default(false)
 
-  emailVerificationToken EmailVerificationToken[]
-  passwordResetToken PasswordResetToken[]
+  emailVerificationTokens EmailVerificationToken[]
+  passwordResetTokens PasswordResetToken[]
 
   createdAt TimestamptzString @default(now())
   updatedAt temporal.updatedAtString()
