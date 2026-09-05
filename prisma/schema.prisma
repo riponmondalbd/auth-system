@@ -27,27 +27,27 @@ model User {
 }
 
 model EmailVerificationToken {
-  id          Int               @id @default(autoincrement())
-  tokenHashed String            @unique
+  id        Int               @id @default(autoincrement())
+  tokenHash String            @unique
 
-  userId      Int
-  user        User              @relation(fields:[userId], references:[id], onDelete: Cascade)
+  userId    Int
+  user      User              @relation(fields:[userId], references:[id], onDelete: Cascade)
 
-  expiresAt   TimestamptzString
-  createdAt   TimestamptzString @default(now())
+  expiresAt TimestamptzString
+  createdAt TimestamptzString @default(now())
 }
 
 model PasswordResetToken {
-  id          Int               @id @default(autoincrement())
-  tokenHashed String            @unique
+  id        Int               @id @default(autoincrement())
+  tokenHash String            @unique
 
-  userId      Int
-  user        User              @relation(fields:[userId], references:[id], onDelete: Cascade)
+  userId    Int
+  user      User              @relation(fields:[userId], references:[id], onDelete: Cascade)
 
-  expiresAt   TimestamptzString
-  used        Boolean           @default(false)
+  expiresAt TimestamptzString
+  used      Boolean           @default(false)
 
-  createdAt   TimestamptzString @default(now())
+  createdAt TimestamptzString @default(now())
 }
 
 model RefreshToken {
