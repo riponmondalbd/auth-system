@@ -1,60 +1,65 @@
 // use prisma-next
+enum UserRole {
+  USER
+  ADMIN
+}
 
 model User {
-  id Int @id @default(autoincrement())
+  id                      Int                        @id @default(autoincrement())
 
-  name String
-  username String @unique
-  email String @unique
-  password String
+  name                    String
+  username                String                     @unique
+  email                   String                     @unique
+  password                String
 
-  image String?
-  imagePublicId String?
+  image                   String?
+  imagePublicId           String?
 
-  isVerified Boolean @default(false)
+  role                    UserRole                   @default(USER)
+  isVerified              Boolean                    @default(false)
 
   emailVerificationTokens EmailVerificationToken[]
-  passwordResetTokens PasswordResetToken[]
-  refreshTokens RefreshToken[]
+  passwordResetTokens     PasswordResetToken[]
+  refreshTokens           RefreshToken[]
 
-  createdAt TimestamptzString @default(now())
-  updatedAt temporal.updatedAtString()
+  createdAt               TimestamptzString          @default(now())
+  updatedAt               temporal.updatedAtString()
 }
 
-model EmailVerificationToken{
-  id Int @id @default(autoincrement())
-  token String @unique
+model EmailVerificationToken {
+  id          Int               @id @default(autoincrement())
+  tokenHashed String            @unique
 
-  userId Int
-  user User @relation(fields:[userId], references:[id], onDelete: Cascade)
+  userId      Int
+  user        User              @relation(fields:[userId], references:[id], onDelete: Cascade)
 
-  expiresAt TimestamptzString
-  createdAt TimestamptzString @default(now())
+  expiresAt   TimestamptzString
+  createdAt   TimestamptzString @default(now())
 }
 
-model PasswordResetToken{
-  id Int @id @default(autoincrement())
-  token String @unique
+model PasswordResetToken {
+  id          Int               @id @default(autoincrement())
+  tokenHashed String            @unique
 
-  userId Int
-  user User @relation(fields:[userId],references:[id], onDelete: Cascade)
+  userId      Int
+  user        User              @relation(fields:[userId], references:[id], onDelete: Cascade)
 
-  expiresAt TimestamptzString
-  used Boolean @default(false)
+  expiresAt   TimestamptzString
+  used        Boolean           @default(false)
 
-  createdAt TimestamptzString @default(now())
+  createdAt   TimestamptzString @default(now())
 }
 
-model RefreshToken{
-  id Int @id @default(autoincrement())
+model RefreshToken {
+  id        Int               @id @default(autoincrement())
 
-  tokenHash String @unique
+  tokenHash String            @unique
 
-  userId Int
-  user User @relation(fields:[userId],references:[id],onDelete: Cascade)
+  userId    Int
+  user      User              @relation(fields:[userId], references:[id], onDelete: Cascade)
 
   expiresAt TimestamptzString
-  revoked Boolean @default(false)
+  revoked   Boolean           @default(false)
 
   createdAt TimestamptzString @default(now())
 }
