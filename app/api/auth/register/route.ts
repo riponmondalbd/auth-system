@@ -1,4 +1,5 @@
 import { hashPassword } from "@/lib/password";
+import { generateToken, hashToken } from "@/lib/token";
 import { db } from "@/prisma/db";
 import { registerSchema } from "@/validations/auth.schema";
 import { NextRequest, NextResponse } from "next/server";
@@ -42,6 +43,16 @@ export async function POST(request: NextRequest) {
     username,
     email,
     password: hashedPassword,
+  });
+
+  const verificationToken = generateToken();
+  const tokenHash = hashToken(verificationToken);
+  const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes from now
+
+  await db.orm.public.EmailVerificationToken.create({
+    tokenHash,
+    userId: user.id,
+    expiresAt,
   });
 
   return NextResponse.json(
