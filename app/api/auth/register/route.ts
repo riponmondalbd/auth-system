@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
   const hashedPassword = await hashPassword(password);
 
   // Use a transaction to create the user and the email verification token
-  const resultUser = await db.transaction(async (tx) => {
+  const transactionResult = await db.transaction(async (tx) => {
     const user = await tx.orm.public.User.create({
       name,
       username,
@@ -61,14 +61,33 @@ export async function POST(request: NextRequest) {
     });
 
     const verificationToken = generateToken();
+
     const tokenHash = hashToken(verificationToken);
 
-    const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes from now
+    const expiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString(); // 30 minutes from now
 
     await tx.orm.public.EmailVerificationToken.create({
       tokenHash,
       userId: user.id,
       expiresAt,
     });
+
+    return { user, verificationToken };
   });
+
+  return NextResponse.json(
+    {
+      success: true,
+      message: "User created successfully",
+      user: {
+        id: transactionResult.user.id,
+        name: transactionResult.user.name,
+        username: transactionResult.user.username,
+        email: transactionResult.user.email,
+        role: transactionResult.user.role,
+        isVerified: transactionResult.user.isVerified,
+      },
+    },
+    { status: 201 },
+  );
 }
