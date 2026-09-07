@@ -1,3 +1,4 @@
+import { hashPassword } from "@/lib/password";
 import { db } from "@/prisma/db";
 import { registerSchema } from "@/validations/auth.schema";
 import { NextRequest, NextResponse } from "next/server";
@@ -34,5 +35,28 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  return NextResponse.json({ success: true, message: "Validation successful" });
+  const hashedPassword = await hashPassword(password);
+
+  const user = await db.orm.public.User.create({
+    name,
+    username,
+    email,
+    password: hashedPassword,
+  });
+
+  return NextResponse.json(
+    {
+      success: true,
+      message: "User created successfully",
+      user: {
+        id: user.id,
+        name: user.name,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        isVerified: user.isVerified,
+      },
+    },
+    { status: 201 },
+  );
 }
