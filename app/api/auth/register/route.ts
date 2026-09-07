@@ -76,12 +76,29 @@ export async function POST(request: NextRequest) {
     return { user, verificationToken };
   });
 
-  await sendEmailVerification(email, name, transactionResult.verificationToken);
+  try {
+    await sendEmailVerification(
+      email,
+      name,
+      transactionResult.verificationToken,
+    );
+  } catch (error) {
+    console.log("Verification email failed:", error);
+
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Account created, but failed to send verification email.",
+      },
+      { status: 500 },
+    );
+  }
 
   return NextResponse.json(
     {
       success: true,
-      message: "User created successfully",
+      message:
+        "User created successfully. Please check your email to verify your account.",
       user: {
         id: transactionResult.user.id,
         name: transactionResult.user.name,
