@@ -1,3 +1,4 @@
+import { sendEmailVerification } from "@/lib/email";
 import { hashPassword } from "@/lib/password";
 import { generateToken, hashToken } from "@/lib/token";
 import { db } from "@/prisma/db";
@@ -74,6 +75,8 @@ export async function POST(request: NextRequest) {
 
     return { user, verificationToken };
   });
+
+  await sendEmailVerification(email, name, transactionResult.verificationToken);
 
   return NextResponse.json(
     {
