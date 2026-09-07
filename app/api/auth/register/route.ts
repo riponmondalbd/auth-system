@@ -35,4 +35,15 @@ export async function POST(request: NextRequest) {
   }
 
   // Check if the username already exists in the database
+  const existingUsername = await db.orm.public.User.first({ username });
+
+  if (existingUsername) {
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Username already exists",
+      },
+      { status: 400 },
+    );
+  }
 }
