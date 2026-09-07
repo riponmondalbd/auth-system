@@ -1,3 +1,5 @@
+import { hashPassword } from "@/lib/password";
+import { generateToken, hashToken } from "@/lib/token";
 import { db } from "@/prisma/db";
 import { registerSchema } from "@/validations/auth.schema";
 import { NextRequest, NextResponse } from "next/server";
@@ -46,4 +48,27 @@ export async function POST(request: NextRequest) {
       { status: 400 },
     );
   }
+
+  const hashedPassword = await hashPassword(password);
+
+  // Use a transaction to create the user and the email verification token
+  const resultUser = await db.transaction(async (tx) => {
+    const user = await tx.orm.public.User.create({
+      name,
+      username,
+      email,
+      password: hashedPassword,
+    });
+
+    const verificationToken = generateToken();
+    const tokenHash = hashToken(verificationToken);
+
+    const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes from now
+
+    await tx.orm.public.EmailVerificationToken.create({
+      tokenHash,
+      userId: user.id,
+      expiresAt,
+    });
+  });
 }
