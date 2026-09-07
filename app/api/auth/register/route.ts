@@ -1,6 +1,3 @@
-import { hashPassword } from "@/lib/password";
-import { generateToken, hashToken } from "@/lib/token";
-import { db } from "@/prisma/db";
 import { registerSchema } from "@/validations/auth.schema";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -11,52 +8,11 @@ export async function POST(request: NextRequest) {
 
   if (!result.success) {
     return NextResponse.json(
-      { success: false, errors: result.error.flatten().fieldErrors },
+      {
+        success: false,
+        errors: result.error.flatten().fieldErrors,
+      },
       { status: 400 },
     );
   }
-
-  const { name, username, email, password } = result.data;
-
-  const existingEmail = await db.orm.public.User.first({ email });
-
-  if (existingEmail) {
-    return NextResponse.json(
-      { success: false, message: "Email already exists" },
-      { status: 409 },
-    );
-  }
-
-  const existingUsername = await db.orm.public.User.first({ username });
-
-  if (existingUsername) {
-    return NextResponse.json(
-      { success: false, message: "Username already exists" },
-      { status: 409 },
-    );
-  }
-
-  const hashedPassword = await hashPassword(password);
-
-  const resultUser = await db.transaction(async (tx) => {
-    const user = await tx.orm.public.User.create({
-      name,
-      username,
-      email,
-      password: hashedPassword,
-    });
-
-    const verificationToken = generateToken();
-    const tokenHash = hashToken(verificationToken);
-
-    const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes from now
-
-    await tx.orm.public.EmailVerificationToken.create({
-      tokenHash,
-      userId: user.id,
-      expiresAt,
-    });
-
-    return { user, verificationToken };
-  });
 }
