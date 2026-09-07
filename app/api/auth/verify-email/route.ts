@@ -44,15 +44,18 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  //   Update the user's isVerified field to true
-  await db.orm.public.User.where({ id: verificationToken.userId }).update({
-    isVerified: true,
-  });
+  // Use a transaction to update the user's isVerified field and delete the used verification token
+  await db.transaction(async (tx) => {
+    //   Update the user's isVerified field to true
+    await tx.orm.public.User.where({ id: verificationToken.userId }).update({
+      isVerified: true,
+    });
 
-  //   Delete the used verification token from the database
-  await db.orm.public.EmailVerificationToken.where({
-    id: verificationToken.id,
-  }).delete();
+    //   Delete the used verification token from the database
+    await tx.orm.public.EmailVerificationToken.where({
+      id: verificationToken.id,
+    }).delete();
+  });
 
   return NextResponse.json(
     {
