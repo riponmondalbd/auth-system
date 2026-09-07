@@ -76,6 +76,7 @@ export async function POST(request: NextRequest) {
     return { user, verificationToken };
   });
 
+  // Send the verification email
   try {
     await sendEmailVerification(
       email,
@@ -94,6 +95,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // Return a success response with the user data (excluding the password)
   return NextResponse.json(
     {
       success: true,
