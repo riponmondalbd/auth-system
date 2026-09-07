@@ -38,36 +38,25 @@ export async function POST(request: NextRequest) {
 
   const hashedPassword = await hashPassword(password);
 
-  const user = await db.orm.public.User.create({
-    name,
-    username,
-    email,
-    password: hashedPassword,
+  const resultUser = await db.transaction(async (tx) => {
+    const user = await tx.orm.public.User.create({
+      name,
+      username,
+      email,
+      password: hashedPassword,
+    });
+
+    const verificationToken = generateToken();
+    const tokenHash = hashToken(verificationToken);
+
+    const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes from now
+
+    await tx.orm.public.EmailVerificationToken.create({
+      tokenHash,
+      userId: user.id,
+      expiresAt,
+    });
+
+    return { user, verificationToken };
   });
-
-  const verificationToken = generateToken();
-  const tokenHash = hashToken(verificationToken);
-  const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes from now
-
-  await db.orm.public.EmailVerificationToken.create({
-    tokenHash,
-    userId: user.id,
-    expiresAt,
-  });
-
-  return NextResponse.json(
-    {
-      success: true,
-      message: "User created successfully",
-      user: {
-        id: user.id,
-        name: user.name,
-        username: user.username,
-        email: user.email,
-        role: user.role,
-        isVerified: user.isVerified,
-      },
-    },
-    { status: 201 },
-  );
 }
