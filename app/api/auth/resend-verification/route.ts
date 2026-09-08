@@ -1,3 +1,4 @@
+import { sendEmailVerification } from "@/lib/email";
 import { generateToken, hashToken } from "@/lib/token";
 import { db } from "@/prisma/db";
 import { NextRequest, NextResponse } from "next/server";
@@ -48,13 +49,38 @@ export async function POST(request: NextRequest) {
 
   const expiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString(); // 30 minutes from now
 
+  //   delete any existing verification tokens for the user
   await db.orm.public.EmailVerificationToken.where({
     userId: user.id,
   }).delete();
 
+  //   create a new verification token for the user
   await db.orm.public.EmailVerificationToken.create({
     tokenHash,
     userId: user.id,
     expiresAt,
   });
+
+  //   Send the verification email
+  try {
+    await sendEmailVerification(user.email, user.name, verificationToken);
+  } catch (error) {
+    console.error("Error sending verification email:", error);
+
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Failed to send verification email",
+      },
+      { status: 500 },
+    );
+  }
+
+  return NextResponse.json(
+    {
+      success: true,
+      message: "Verification email resent successfully",
+    },
+    { status: 200 },
+  );
 }
