@@ -1,15 +1,50 @@
-const VerifyEmailPage = async ({
-  searchParams,
-}: {
-  searchParams: Promise<{ token?: string }>;
-}) => {
-  const { token } = await searchParams;
+"use client";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+
+const VerifyEmailPage = () => {
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token");
+
+  const [status, setStatus] = useState("Verifying your email ........");
+
+  useEffect(() => {
+    if (!token) {
+      setStatus("Invalid or missing token");
+      return;
+    }
+
+    async function verifyEmail() {
+      try {
+        const response = await fetch("/api/auth/verify-email", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ token }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          setStatus(data.message || "Email verification failed");
+          return;
+        }
+
+        setStatus(data.message);
+      } catch (error) {
+        console.error("Error verifying email:", error);
+        setStatus("Something went wrong. Please try again later.");
+      }
+    }
+    verifyEmail();
+  }, [token]);
   return (
     <main className="flex min-h-screen items-center justify-center">
-      <div>
-        <h1 className="text-2xl font-bold">Verify Email</h1>
+      <div className="text-center">
+        <h1 className="text-2xl font-bold">Email Verification</h1>
 
-        <p className="mt-2">Token: {token}</p>
+        <p className="mt-4">{status}</p>
       </div>
     </main>
   );
