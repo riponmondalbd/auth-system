@@ -27,4 +27,14 @@ export async function POST(request: NextRequest) {
       { status: 404 },
     );
   }
+
+  if (user.isVerified) {
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Email is already verified",
+      },
+      { status: 400 },
+    );
+  }
 }
