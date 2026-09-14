@@ -43,4 +43,14 @@ export async function POST(request: NextRequest) {
       { status: 401 },
     );
   }
+
+  if (!user.isVerified) {
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Please verify your email before logging in",
+      },
+      { status: 403 },
+    );
+  }
 }
