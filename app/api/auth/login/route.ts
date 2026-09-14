@@ -1,3 +1,4 @@
+import { comparePassword } from "@/lib/password";
 import { db } from "@/prisma/db";
 import { loginSchema } from "@/validations/auth.schema";
 import { NextRequest, NextResponse } from "next/server";
@@ -22,6 +23,18 @@ export async function POST(request: NextRequest) {
   const user = await db.orm.public.User.first({ email });
 
   if (!user) {
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Invalid email or password",
+      },
+      { status: 401 },
+    );
+  }
+
+  const isPasswordValid = await comparePassword(password, user.password);
+
+  if (!isPasswordValid) {
     return NextResponse.json(
       {
         success: false,
