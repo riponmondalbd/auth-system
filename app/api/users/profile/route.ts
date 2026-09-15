@@ -60,6 +60,16 @@ export async function PATCH(request: Request) {
 
     const { name, username } = result.data;
 
+    if (name === undefined && username === undefined) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "At least one field must be provided",
+        },
+        { status: 400 },
+      );
+    }
+
     if (username && username !== user.username) {
       const existingUser = await db.orm.public.User.first({ username });
 
