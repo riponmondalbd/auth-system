@@ -25,5 +25,15 @@ export async function getCurrentUser() {
     return null;
   }
 
-  return user;
+  return {
+    id: user.id,
+    name: user.name,
+    username: user.username,
+    email: user.email,
+    image: user.image,
+    role: user.role,
+    isVerified: user.isVerified,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
+  };
 }
