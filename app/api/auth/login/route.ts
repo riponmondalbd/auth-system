@@ -1,3 +1,4 @@
+import { setAuthCookies } from "@/lib/cookie";
 import { generateAccessToken, generateRefreshToken } from "@/lib/jwt";
 import { comparePassword } from "@/lib/password";
 import { hashToken } from "@/lib/token";
@@ -77,4 +78,24 @@ export async function POST(request: NextRequest) {
     userId: user.id,
     expiresAt: refreshTokenExpiry,
   });
+
+  const response = NextResponse.json(
+    {
+      success: true,
+      message: "Logged in successfully",
+      user: {
+        id: user.id,
+        name: user.name,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        isVerified: user.isVerified,
+        image: user.image,
+      },
+    },
+    { status: 200 },
+  );
+
+  setAuthCookies(response, accessToken, refreshToken);
+  return response;
 }
