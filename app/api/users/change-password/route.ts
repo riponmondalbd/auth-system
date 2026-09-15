@@ -57,8 +57,14 @@ export async function PATCH(request: Request) {
     const hashedPassword = await hashPassword(newPassword);
 
     // Update the user's password in the database
-    await db.orm.public.User.where({ id: user.id }).update({
-      password: hashedPassword,
+    await db.transaction(async (tx) => {
+      await tx.orm.public.User.where({ id: user.id }).update({
+        password: hashedPassword,
+      });
+
+      await tx.orm.public.RefreshToken.where({ userId: user.id }).update({
+        revoked: true,
+      });
     });
 
     return NextResponse.json(
