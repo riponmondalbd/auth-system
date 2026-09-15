@@ -1,4 +1,5 @@
 import { verifyAccessToken } from "@/lib/jwt";
+import { db } from "@/prisma/db";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
@@ -27,4 +28,32 @@ export async function GET(request: NextRequest) {
       { status: 401 },
     );
   }
+
+  const user = await db.orm.public.User.first({ id: Number(payload.userId) });
+
+  if (!user) {
+    return NextResponse.json(
+      {
+        success: false,
+        message: "User not found",
+      },
+      { status: 404 },
+    );
+  }
+
+  return NextResponse.json(
+    {
+      success: true,
+      data: {
+        id: user.id,
+        name: user.name,
+        username: user.username,
+        email: user.email,
+        image: user.image,
+        role: user.role,
+        isVerified: user.isVerified,
+      },
+    },
+    { status: 200 },
+  );
 }
