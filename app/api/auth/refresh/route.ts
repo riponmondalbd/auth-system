@@ -55,4 +55,14 @@ export async function POST(request: NextRequest) {
       { status: 401 },
     );
   }
+
+  if (new Date(storedToken.expiresAt) < new Date()) {
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Refresh token has expired",
+      },
+      { status: 401 },
+    );
+  }
 }
