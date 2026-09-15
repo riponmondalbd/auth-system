@@ -1,4 +1,4 @@
-import { verifyAccessToken } from "@/lib/jwt";
+import { generateAccessToken, verifyAccessToken } from "@/lib/jwt";
 import { hashToken } from "@/lib/token";
 import { db } from "@/prisma/db";
 import { NextRequest, NextResponse } from "next/server";
@@ -65,4 +65,30 @@ export async function POST(request: NextRequest) {
       { status: 401 },
     );
   }
+
+  const accessToken = generateAccessToken({
+    userId: payload.userId,
+    role: payload.role,
+  });
+
+  const newRefreshToken = generateAccessToken({
+    userId: payload.userId,
+    role: payload.role,
+  });
+
+  const newRefreshTokenHash = hashToken(newRefreshToken);
+
+  const newRefreshTokenExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+
+  await db.transaction(async (tx) => {
+    await tx.orm.public.RefreshToken.where({ id: storedToken.id }).update({
+      revoked: true,
+    });
+
+    await tx.orm.public.RefreshToken.create({
+      tokenHash: newRefreshTokenHash,
+      userId: Number(payload.userId),
+      expiresAt: newRefreshTokenExpiry.toISOString(),
+    });
+  });
 }
