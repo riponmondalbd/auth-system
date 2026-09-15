@@ -1,3 +1,4 @@
+import { setAuthCookies } from "@/lib/cookie";
 import { generateAccessToken, verifyAccessToken } from "@/lib/jwt";
 import { hashToken } from "@/lib/token";
 import { db } from "@/prisma/db";
@@ -91,4 +92,14 @@ export async function POST(request: NextRequest) {
       expiresAt: newRefreshTokenExpiry.toISOString(),
     });
   });
+
+  const response = NextResponse.json(
+    {
+      success: true,
+      message: "Access token refreshed successfully",
+    },
+    { status: 200 },
+  );
+
+  setAuthCookies(response, accessToken, newRefreshToken);
 }
