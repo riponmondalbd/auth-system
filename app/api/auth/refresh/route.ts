@@ -1,5 +1,9 @@
 import { setAuthCookies } from "@/lib/cookie";
-import { generateAccessToken, verifyAccessToken } from "@/lib/jwt";
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  verifyRefreshToken,
+} from "@/lib/jwt";
 import { hashToken } from "@/lib/token";
 import { db } from "@/prisma/db";
 import { NextRequest, NextResponse } from "next/server";
@@ -20,7 +24,7 @@ export async function POST(request: NextRequest) {
   let payload;
 
   try {
-    payload = verifyAccessToken(refreshToken);
+    payload = verifyRefreshToken(refreshToken);
   } catch {
     return NextResponse.json(
       {
@@ -72,7 +76,7 @@ export async function POST(request: NextRequest) {
     role: payload.role,
   });
 
-  const newRefreshToken = generateAccessToken({
+  const newRefreshToken = generateRefreshToken({
     userId: payload.userId,
     role: payload.role,
   });
@@ -102,4 +106,5 @@ export async function POST(request: NextRequest) {
   );
 
   setAuthCookies(response, accessToken, newRefreshToken);
+  return response;
 }
