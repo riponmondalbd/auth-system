@@ -1,4 +1,6 @@
+import { generateAccessToken, generateRefreshToken } from "@/lib/jwt";
 import { comparePassword } from "@/lib/password";
+import { hashToken } from "@/lib/token";
 import { db } from "@/prisma/db";
 import { loginSchema } from "@/validations/auth.schema";
 import { NextRequest, NextResponse } from "next/server";
@@ -53,4 +55,26 @@ export async function POST(request: NextRequest) {
       { status: 403 },
     );
   }
+
+  const accessToken = generateAccessToken({
+    userId: String(user.id),
+    role: user.role,
+  });
+
+  const refreshToken = generateRefreshToken({
+    userId: String(user.id),
+    role: user.role,
+  });
+
+  const refreshTokenHash = hashToken(refreshToken);
+
+  const refreshTokenExpiry = new Date(
+    Date.now() + 7 * 24 * 60 * 60 * 1000,
+  ).toISOString(); // 7 days from now
+
+  await db.orm.public.RefreshToken.create({
+    tokenHash: refreshTokenHash,
+    userId: user.id,
+    expiresAt: refreshTokenExpiry,
+  });
 }
