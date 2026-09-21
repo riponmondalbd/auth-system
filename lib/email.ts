@@ -2,6 +2,7 @@ import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+// Function to send email verification
 export async function sendEmailVerification(
   email: string,
   name: string,
@@ -36,6 +37,55 @@ export async function sendEmailVerification(
 
       <p>
         This link will expire in 30 minutes.
+      </p>
+    `,
+  });
+}
+
+// Function to send password reset email
+export async function sendPasswordResetEmail(
+  email: string,
+  name: string,
+  resetToken: string,
+) {
+  const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${resetToken}`;
+
+  await resend.emails.send({
+    from: "onboarding@resend.dev",
+    to: email,
+    subject: "Reset your password",
+    html: `
+      <h2>Hello ${name}!</h2>
+
+      <p>
+        We received a request to reset your password.
+      </p>
+
+      <p>
+        Click the button below to create a new password.
+      </p>
+
+      <a
+        href="${resetUrl}"
+        style="
+          display: inline-block;
+          padding: 12px 20px;
+          background: #000;
+          color: #fff;
+          text-decoration: none;
+          border-radius: 6px;
+        "
+      >
+        Reset Password
+      </a>
+
+      <p>
+        This link will expire in 30 minutes.
+      </p>
+
+      <p>
+        If you did not request a password reset,
+        you can safely ignore this email.
       </p>
     `,
   });
