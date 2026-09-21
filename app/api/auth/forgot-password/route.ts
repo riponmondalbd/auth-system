@@ -1,3 +1,4 @@
+import { sendPasswordResetEmail } from "@/lib/email";
 import { generateToken, hashToken } from "@/lib/token";
 import { db } from "@/prisma/db";
 import { forgotPasswordSchema } from "@/validations/auth.schema";
@@ -37,7 +38,7 @@ export async function POST(request: Request) {
 
     const tokenHash = hashToken(resetToken);
 
-    const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString(); // 1 hour from now
+    const expiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString(); // 30 minutes from now
 
     await db.orm.public.PasswordResetToken.where({
       userId: user.id,
@@ -49,10 +50,24 @@ export async function POST(request: Request) {
       expiresAt,
     });
 
+    try {
+      await sendPasswordResetEmail(user.email, user.username, resetToken);
+    } catch (error) {
+      console.error("Error sending password reset email:", error);
+
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Failed to send password reset email",
+        },
+        { status: 500 },
+      );
+    }
+
     return NextResponse.json(
       {
         success: true,
-        message: "Password reset token create successfully",
+        message: "Password reset email sent successfully",
         resetToken,
       },
       { status: 200 },
