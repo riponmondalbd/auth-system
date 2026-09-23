@@ -22,10 +22,10 @@ export const registerSchema = z.object({
     .string()
     .min(8, "Password must be at least 8 characters long")
     .max(100, "Password must be less than 100 characters long")
-    .regex(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/,
-      "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character",
-    ),
+    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+    .regex(/\d/, "Password must contain at least one number")
+    .regex(/[@$!%*?&]/, "Password must contain at least one special character"),
 });
 
 // Validation schema for user login
@@ -46,9 +46,16 @@ export const changePasswordSchema = z
       .string()
       .min(8, "New password must be at least 8 characters long")
       .max(100, "New password must be less than 100 characters long")
+      // .regex(
+      //   /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/,
+      //   "New password must contain at least one uppercase letter, one lowercase letter, one number, and one special character",
+      // ),
+      .regex(/[a-z]/, "New password must contain at least one lowercase letter")
+      .regex(/[A-Z]/, "New password must contain at least one uppercase letter")
+      .regex(/\d/, "New password must contain at least one number")
       .regex(
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/,
-        "New password must contain at least one uppercase letter, one lowercase letter, one number, and one special character",
+        /[@$!%*?&]/,
+        "New password must contain at least one special character",
       ),
 
     confirmNewPassword: z.string().min(1, "Please confirm your new password"),
@@ -76,9 +83,12 @@ export const resetPasswordSchema = z
       .string()
       .min(8, "New password must be at least 8 characters long")
       .max(100, "New password must be less than 100 characters long")
+      .regex(/[a-z]/, "New password must contain at least one lowercase letter")
+      .regex(/[A-Z]/, "New password must contain at least one uppercase letter")
+      .regex(/\d/, "New password must contain at least one number")
       .regex(
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/,
-        "New password must contain at least one uppercase letter, one lowercase letter, one number, and one special character",
+        /[@$!%*?&]/,
+        "New password must contain at least one special character",
       ),
 
     confirmNewPassword: z.string().min(1, "Please confirm your new password"),

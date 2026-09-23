@@ -8,10 +8,12 @@ const RegisterPage = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [errors, setErrors] = useState<Record<string, string[]>>({});
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setMessage("");
+    setErrors({});
     setLoading(true);
 
     try {
@@ -32,8 +34,13 @@ const RegisterPage = () => {
 
       if (!response.ok) {
         setMessage(data.message || "Registration failed.");
+
+        if (data.errors) {
+          setErrors(data.errors);
+        }
         return;
       }
+      setErrors({});
       setMessage(data.message);
     } catch (error) {
       console.error("Registration error:", error);
@@ -67,6 +74,9 @@ const RegisterPage = () => {
               placeholder="Enter your name"
               className="w-full rounded border px-3 py-2 outline-none focus:ring-2"
             />
+            {errors.name?.map((error) => {
+              return <p className="mt-1 text-sm text-red-500">{error}</p>;
+            })}
           </div>
           {/* username */}
           <div>
@@ -82,6 +92,9 @@ const RegisterPage = () => {
               placeholder="Enter your username"
               className="w-full rounded border px-3 py-2 outline-none focus:ring-2"
             />
+            {errors.username?.map((error) => {
+              return <p className="mt-1 text-sm text-red-500">{error}</p>;
+            })}
           </div>
 
           {/* Email */}
@@ -98,6 +111,9 @@ const RegisterPage = () => {
               placeholder="Enter your email"
               className="w-full rounded border px-3 py-2 outline-none focus:ring-2"
             />
+            {errors.email?.map((error) => {
+              return <p className="mt-1 text-sm text-red-500">{error}</p>;
+            })}
           </div>
           {/* Password */}
           <div>
@@ -112,6 +128,9 @@ const RegisterPage = () => {
               placeholder="Enter your password"
               className="w-full rounded border px-3 py-2 outline-none focus:ring-2"
             />
+            {errors.password?.map((error) => {
+              return <p className="mt-1 text-sm text-red-500">{error}</p>;
+            })}
           </div>
 
           <button
