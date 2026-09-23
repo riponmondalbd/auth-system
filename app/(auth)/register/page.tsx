@@ -75,7 +75,11 @@ const RegisterPage = () => {
               className="w-full rounded border px-3 py-2 outline-none focus:ring-2"
             />
             {errors.name?.map((error) => {
-              return <p className="mt-1 text-sm text-red-500">{error}</p>;
+              return (
+                <p key={error} className="mt-1 text-sm text-red-500">
+                  {error}
+                </p>
+              );
             })}
           </div>
           {/* username */}
@@ -93,7 +97,11 @@ const RegisterPage = () => {
               className="w-full rounded border px-3 py-2 outline-none focus:ring-2"
             />
             {errors.username?.map((error) => {
-              return <p className="mt-1 text-sm text-red-500">{error}</p>;
+              return (
+                <p key={error} className="mt-1 text-sm text-red-500">
+                  {error}
+                </p>
+              );
             })}
           </div>
 
@@ -112,7 +120,11 @@ const RegisterPage = () => {
               className="w-full rounded border px-3 py-2 outline-none focus:ring-2"
             />
             {errors.email?.map((error) => {
-              return <p className="mt-1 text-sm text-red-500">{error}</p>;
+              return (
+                <p key={error} className="mt-1 text-sm text-red-500">
+                  {error}
+                </p>
+              );
             })}
           </div>
           {/* Password */}
@@ -129,7 +141,11 @@ const RegisterPage = () => {
               className="w-full rounded border px-3 py-2 outline-none focus:ring-2"
             />
             {errors.password?.map((error) => {
-              return <p className="mt-1 text-sm text-red-500">{error}</p>;
+              return (
+                <p key={error} className="mt-1 text-sm text-red-500">
+                  {error}
+                </p>
+              );
             })}
           </div>
 
