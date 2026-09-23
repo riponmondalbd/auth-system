@@ -27,6 +27,7 @@ const EditProfilePage = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
 
+  //   Fetch the user's profile on component mount
   useEffect(() => {
     async function fetchProfile() {
       try {
@@ -52,6 +53,78 @@ const EditProfilePage = () => {
     fetchProfile();
   }, []);
 
+  //   Handle image file selection and preview
+  function handleImageChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    setImageFile(file);
+
+    const previewUrl = URL.createObjectURL(file);
+
+    setImagePreview(previewUrl);
+  }
+
+  //   Handle image upload
+  async function uploadImage() {
+    if (!imageFile) {
+      return null;
+    }
+
+    setUploading(true);
+
+    try {
+      const signatureResponse = await fetch("/api/upload/signature", {
+        credentials: "include",
+        cache: "no-store",
+      });
+
+      const signatureData = await signatureResponse.json();
+
+      if (!signatureResponse.ok) {
+        throw new Error(
+          signatureData.message || "Failed to get upload signature.",
+        );
+      }
+
+      const formData = new FormData();
+
+      formData.append("file", imageFile);
+
+      formData.append("api_key", signatureData.apiKey);
+
+      formData.append("timestamp", String(signatureData.timestamp));
+
+      formData.append("signature", signatureData.signature);
+
+      formData.append("folder", signatureData.folder);
+
+      const uploadResponse = await fetch(
+        `https://api.cloudinary.com/v1_1/${signatureData.cloudName}/image/upload`,
+        {
+          method: "POST",
+          body: formData,
+        },
+      );
+
+      const uploadData = await uploadResponse.json();
+
+      if (!uploadResponse.ok) {
+        throw new Error(uploadData.error?.message || "Image upload failed.");
+      }
+
+      return {
+        image: uploadData.secure_url as string,
+        imagePublicId: uploadData.public_id as string,
+      };
+    } finally {
+      setUploading(false);
+    }
+  }
+  //   Handle form submission to update the user's profile
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -108,20 +181,6 @@ const EditProfilePage = () => {
         <p className="text-red-500">{message || "User not found."}</p>
       </main>
     );
-  }
-
-  function handleImageChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-
-    if (!file) {
-      return;
-    }
-
-    setImageFile(file);
-
-    const previewUrl = URL.createObjectURL(file);
-
-    setImagePreview(previewUrl);
   }
 
   return (
