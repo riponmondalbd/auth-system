@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -7,6 +8,8 @@ const VerifyEmailPage = () => {
   const token = searchParams.get("token");
 
   const [status, setStatus] = useState("Verifying your email ........");
+
+  const [success, setSuccess] = useState(false);
 
   useEffect(() => {
     if (!token) {
@@ -31,6 +34,7 @@ const VerifyEmailPage = () => {
           return;
         }
 
+        setSuccess(true);
         setStatus(data.message);
       } catch (error) {
         console.error("Error verifying email:", error);
@@ -45,6 +49,12 @@ const VerifyEmailPage = () => {
         <h1 className="text-2xl font-bold">Email Verification</h1>
 
         <p className="mt-4">{status}</p>
+
+        {success && (
+          <Link href="/login" className="text-blue-500 hover:underline">
+            Go to Login
+          </Link>
+        )}
       </div>
     </main>
   );
