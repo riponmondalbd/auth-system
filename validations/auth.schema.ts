@@ -67,6 +67,7 @@ export const forgotPasswordSchema = z.object({
 
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
 
+// Validation schema for reset password
 export const resetPasswordSchema = z
   .object({
     token: z.string().min(1, "Token is required"),
