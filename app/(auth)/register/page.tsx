@@ -6,6 +6,42 @@ const RegisterPage = () => {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setMessage("");
+    setLoading(true);
+
+    try {
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name,
+          username,
+          email,
+          password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setMessage(data.message || "Registration failed.");
+        return;
+      }
+      setMessage(data.message);
+    } catch (error) {
+      console.error("Registration error:", error);
+      setMessage("An error occurred during registration.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <main className=" flex min-h-screen items-center justify-center px-4">
@@ -16,7 +52,7 @@ const RegisterPage = () => {
           Create your account to get started.
         </p>
 
-        <form className="mt-6 space-y-4">
+        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           {/* Name */}
           <div>
             <label htmlFor="name" className="mb-1 block">
@@ -80,11 +116,13 @@ const RegisterPage = () => {
 
           <button
             type="submit"
+            disabled={loading}
             className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
           >
-            Create Account
+            {loading ? "Creating Account..." : "Create Account"}
           </button>
         </form>
+        {message && <p className="mt-4 text-sm">{message}</p>}
       </div>
     </main>
   );
