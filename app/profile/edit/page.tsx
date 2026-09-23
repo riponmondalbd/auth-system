@@ -133,12 +133,21 @@ const EditProfilePage = () => {
     setSaving(true);
 
     try {
+      const uploadedImage = await uploadImage();
+
       const response = await fetch("/api/users/profile", {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ name, username }),
+        body: JSON.stringify({
+          name,
+          username,
+          ...(uploadedImage && {
+            image: uploadedImage.image,
+            imagePublicId: uploadedImage.imagePublicId,
+          }),
+        }),
       });
 
       const data = await response.json();
