@@ -61,6 +61,27 @@ const EditProfilePage = () => {
       return;
     }
 
+    const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+
+    const maxSize = 2 * 1024 * 1024; // 2MB
+
+    if (!allowedTypes.includes(file.type)) {
+      setMessage(
+        "Invalid file type. Please select a JPEG, PNG, GIF, or WebP image.",
+      );
+
+      event.target.value = ""; // Clear the input
+      return;
+    }
+
+    if (file.size > maxSize) {
+      setMessage("File size exceeds 2MB. Please select a smaller image.");
+      event.target.value = ""; // Clear the input
+      return;
+    }
+
+    setMessage(""); // Clear any previous messages
+
     setImageFile(file);
 
     const previewUrl = URL.createObjectURL(file);
