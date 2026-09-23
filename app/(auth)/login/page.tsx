@@ -1,9 +1,12 @@
 "use client";
 
+import { useRouter } from "next/dist/client/components/navigation";
 import Link from "next/dist/client/link";
 import { useState } from "react";
 
 const LoginPage = () => {
+  const router = useRouter();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -33,6 +36,9 @@ const LoginPage = () => {
       setMessage(data.message);
 
       // Handle successful login (e.g., redirect to dashboard)
+      setTimeout(() => {
+        router.push("/profile");
+      }, 1500);
     } catch (error) {
       console.error("Login error:", error);
       setMessage("An error occurred during login.");
