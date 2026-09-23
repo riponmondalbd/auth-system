@@ -6,6 +6,40 @@ import { useState } from "react";
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setMessage("");
+    setLoading(true);
+
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setMessage(data.message || "Login failed.");
+        return;
+      }
+
+      setMessage(data.message);
+
+      // Handle successful login (e.g., redirect to dashboard)
+    } catch (error) {
+      console.error("Login error:", error);
+      setMessage("An error occurred during login.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <main className=" flex min-h-screen items-center justify-center px-4">
@@ -14,7 +48,7 @@ const LoginPage = () => {
 
         <p className="mt-2 text-gray-600">Login to your account.</p>
 
-        <form className="mt-6 space-y-4">
+        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <div>
             <label htmlFor="email" className="mb-1 block">
               Email
@@ -50,9 +84,10 @@ const LoginPage = () => {
 
           <button
             type="submit"
+            disabled={loading}
             className="w-full bg-blue-500 text-white py-2 rounded"
           >
-            Sign in
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
 
@@ -65,6 +100,7 @@ const LoginPage = () => {
             Sign up
           </a>
         </p>
+        {message && <p className="mt-4 text-sm">{message}</p>}
       </div>
     </main>
   );
