@@ -89,6 +89,15 @@ const ProfilePage = () => {
 
   return (
     <main className="mt-6 space-y-4 rounded-lg border p-6">
+      {user.image && (
+        <div className="flex items-center space-x-4">
+          <img
+            src={user.image}
+            alt="Profile"
+            className="h-16 w-16 rounded-full object-cover"
+          />
+        </div>
+      )}
       {/* Profile Information name */}
       <div>
         <p className="text-sm text-gray-600">Name</p>
