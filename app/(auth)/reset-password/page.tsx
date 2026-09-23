@@ -1,6 +1,6 @@
 "use client";
 import { useSearchParams } from "next/navigation";
-import { useState } from "react";
+import React, { useState } from "react";
 
 const ResetPasswordPage = () => {
   const searchParams = useSearchParams();
@@ -10,6 +10,38 @@ const ResetPasswordPage = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [message, setMessage] = useState("");
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    setMessage("");
+
+    try {
+      const response = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          token,
+          newPassword,
+          confirmNewPassword: confirmPassword,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setMessage(data.message || "Password reset failed.");
+        return;
+      }
+
+      setMessage(data.message);
+    } catch (error) {
+      console.error("Reset password error:", error);
+      setMessage("An error occurred while resetting the password.");
+    }
+  }
   return (
     <main className=" flex min-h-screen items-center justify-center px-4">
       <div className="w-full man-w-md">
@@ -22,7 +54,7 @@ const ResetPasswordPage = () => {
         )}
 
         {token && (
-          <form className="mt-6 space-y-4">
+          <form onSubmit={handleSubmit} className="mt-6 space-y-4">
             <div>
               <label htmlFor="newPassword" className="mb-1 block">
                 New Password
