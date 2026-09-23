@@ -1,9 +1,11 @@
 "use client";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import React, { useState } from "react";
 
 const ResetPasswordPage = () => {
   const searchParams = useSearchParams();
+
+  const router = useRouter();
 
   const token = searchParams.get("token");
 
@@ -37,6 +39,10 @@ const ResetPasswordPage = () => {
       }
 
       setMessage(data.message);
+
+      setTimeout(() => {
+        router.push("/login");
+      }, 1500);
     } catch (error) {
       console.error("Reset password error:", error);
       setMessage("An error occurred while resetting the password.");
