@@ -16,6 +16,10 @@ export const updateProfileSchema = z.object({
       "Username can only contain letters, numbers and underscore",
     )
     .optional(),
+
+  image: z.string().url("Image must be a valid URL").optional(),
+
+  imagePublicId: z.string().min(1, "Image public ID is required").optional(),
 });
 
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
