@@ -23,9 +23,13 @@ export function verifyAccessToken(token: string): AuthTokenPayload {
 
 //  Generate a JWT refresh token
 export function generateRefreshToken(payload: AuthTokenPayload) {
-  return jwt.sign(payload, REFRESH_TOKEN_SECRET, {
-    expiresIn: REFRESH_TOKEN_EXPIRES_IN,
-  });
+  return jwt.sign(
+    { ...payload, jti: crypto.randomUUID() },
+    REFRESH_TOKEN_SECRET,
+    {
+      expiresIn: REFRESH_TOKEN_EXPIRES_IN,
+    },
+  );
 }
 
 // Verify a JWT refresh token

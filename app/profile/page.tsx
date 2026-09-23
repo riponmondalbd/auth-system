@@ -1,5 +1,6 @@
 "use client";
 
+import { apiFetch } from "@/lib/api";
 import { useRouter } from "next/dist/client/components/navigation";
 import { useEffect, useState } from "react";
 
@@ -25,7 +26,7 @@ const ProfilePage = () => {
   useEffect(() => {
     async function fetchProfile() {
       try {
-        const response = await fetch("/api/users/profile");
+        const response = await apiFetch("/api/users/profile");
 
         const data = await response.json();
 
