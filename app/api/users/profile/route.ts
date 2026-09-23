@@ -58,9 +58,14 @@ export async function PATCH(request: Request) {
       );
     }
 
-    const { name, username } = result.data;
+    const { name, username, image, imagePublicId } = result.data;
 
-    if (name === undefined && username === undefined) {
+    if (
+      name === undefined &&
+      username === undefined &&
+      image === undefined &&
+      imagePublicId === undefined
+    ) {
       return NextResponse.json(
         {
           success: false,
@@ -87,6 +92,8 @@ export async function PATCH(request: Request) {
     const updatedUser = await db.orm.public.User.where({ id: user.id }).update({
       ...(name !== undefined && { name }),
       ...(username !== undefined && { username }),
+      ...(image !== undefined && { image }),
+      ...(imagePublicId !== undefined && { imagePublicId }),
     });
 
     if (!updatedUser) {
