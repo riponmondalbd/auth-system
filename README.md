@@ -1,6 +1,6 @@
 # Auth System
 
-A production-ready authentication system built with **Next.js 16 (App Router)**, **Prisma 8 (Prisma Next)**, and **PostgreSQL**. Features secure JWT-based authentication with access/refresh token rotation, email verification, role-based access control, and comprehensive password management.
+A production-ready authentication system built with **Next.js 16 (App Router)**, **Prisma 8 (Prisma Next)**, and **PostgreSQL**. Features secure JWT-based authentication with access/refresh token rotation, email verification, password reset, role-based access control, profile image uploads via Cloudinary, and comprehensive password management.
 
 ---
 
@@ -15,6 +15,7 @@ A production-ready authentication system built with **Next.js 16 (App Router)**,
 | **Validation** | Zod 4.5 |
 | **Auth** | JWT (jsonwebtoken) + bcrypt (12 rounds) |
 | **Email** | Resend |
+| **Image Upload** | Cloudinary |
 | **Styling** | Tailwind CSS 4 |
 | **Language** | TypeScript 5 (strict) |
 | **Package Manager** | pnpm 11.20 |
@@ -31,12 +32,17 @@ A production-ready authentication system built with **Next.js 16 (App Router)**,
 - **Token Refresh** — rotating refresh tokens (7-day expiry, 15-min access tokens)
 - **Session Persistence** — cookies survive browser restarts
 
+### Password Management
+- **Forgot Password** — request reset email with 30-minute expiring token
+- **Reset Password** — secure token validation, revokes all refresh tokens on change
+- **Change Password** — authenticated users can change password with current password verification
+
 ### Security
 - **Password Hashing** — bcrypt with 12 salt rounds
 - **JWT Signing** — separate secrets for access/refresh tokens
 - **HttpOnly Cookies** — `secure`, `sameSite: lax`, path-scoped
 - **Refresh Token Rotation** — old token revoked on each refresh
-- **Password Change** — revokes all user refresh tokens automatically
+- **Password Change/Reset** — revokes all user refresh tokens automatically
 - **Rate-Limit Ready** — token hashing (SHA-256) prevents DB token leakage
 
 ### Authorization
@@ -45,9 +51,11 @@ A production-ready authentication system built with **Next.js 16 (App Router)**,
 - **Admin Endpoint** — `/api/admin/users` (demo)
 
 ### User Management
-- **Profile** — GET/PATCH `/api/users/profile` (name, username)
+- **Profile** — GET/PATCH `/api/users/profile` (name, username, image, imagePublicId)
+- **Current User** — GET `/api/users/me` (lightweight current user check)
 - **Change Password** — PATCH `/api/users/change-password` with current password verification
 - **Email Resend** — POST `/api/auth/resend-verification`
+- **Profile Image Upload** — Cloudinary signed upload with automatic old image cleanup
 
 ### Developer Experience
 - **Contract-First Prisma** — `prisma/schema.prisma` → `prisma/schema.d.ts` + `schema.json`
@@ -65,46 +73,53 @@ auth-system/
 ├── app/
 │   ├── api/
 │   │   ├── auth/
-│   │   │   ├── register/route.ts           # POST — register + send verification email
-│   │   │   ├── login/route.ts              # POST — login, set auth cookies
-│   │   │   ├── logout/route.ts             # POST — revoke refresh token, clear cookies
-│   │   │   ├── verify-email/route.ts       # POST — verify token, mark user verified
-│   │   │   ├── resend-verification/route.ts# POST — resend verification email
-│   │   │   └── refresh/route.ts            # POST — rotate access + refresh tokens
+│   │   │   ├── register/route.ts             # POST — register + send verification email
+│   │   │   ├── login/route.ts                # POST — login, set auth cookies
+│   │   │   ├── logout/route.ts               # POST — revoke refresh token, clear cookies
+│   │   │   ├── verify-email/route.ts         # POST — verify token, mark user verified
+│   │   │   ├── resend-verification/route.ts  # POST — resend verification email
+│   │   │   ├── refresh/route.ts              # POST — rotate access + refresh tokens
+│   │   │   ├── forgot-password/route.ts      # POST — request password reset email
+│   │   │   └── reset-password/route.ts       # POST — reset password with token
 │   │   ├── users/
-│   │   │   ├── profile/route.ts            # GET/PATCH — current user profile
-│   │   │   └── change-password/route.ts    # PATCH — change password + revoke tokens
-│   │   └── admin/
-│   │       └── users/route.ts              # GET — admin-only endpoint
+│   │   │   ├── me/route.ts                   # GET — lightweight current user check
+│   │   │   ├── profile/route.ts              # GET/PATCH — current user profile (incl. image)
+│   │   │   └── change-password/route.ts      # PATCH — change password + revoke tokens
+│   │   ├── admin/
+│   │   │   └── users/route.ts                # GET — admin-only demo endpoint
+│   │   └── upload/
+│   │       └── signature/route.ts            # GET — Cloudinary upload signature
 │   ├── (auth)/
-│   │   └── verify-email/page.tsx           # Client page — handles ?token= verification
+│   │   └── verify-email/page.tsx             # Client page — handles ?token= verification
 │   ├── layout.tsx
 │   └── page.tsx
 ├── lib/
-│   ├── auth.ts              # getCurrentUser() — reads access token from cookie
-│   ├── auth-error.ts        # AuthError class
-│   ├── cookie.ts            # setAuthCookies / clearAuthCookies
-│   ├── email.ts             # sendEmailVerification() via Resend
-│   ├── jwt.ts               # generate/verify access & refresh tokens
-│   ├── password.ts          # hashPassword / comparePassword (bcrypt)
-│   ├── require-auth.ts      # requireAuth() — throws AuthError if unauthenticated
-│   ├── require-role.ts      # requireRole("ADMIN") — throws AuthError if not admin
-│   └── token.ts             # generateToken() + hashToken() (SHA-256)
+│   ├── auth.ts                 # getCurrentUser() — reads access token from cookie
+│   ├── auth-error.ts           # AuthError class
+│   ├── cookie.ts               # setAuthCookies / clearAuthCookies
+│   ├── email.ts                # sendEmailVerification(), sendPasswordResetEmail() via Resend
+│   ├── jwt.ts                  # generate/verify access & refresh tokens
+│   ├── password.ts             # hashPassword / comparePassword (bcrypt)
+│   ├── require-auth.ts         # requireAuth() — throws AuthError if unauthenticated
+│   ├── require-role.ts         # requireRole("ADMIN") — throws AuthError if not admin
+│   ├── token.ts                # generateToken() + hashToken() (SHA-256)
+│   ├── cloudinary.ts           # Cloudinary config
+│   └── api.ts                  # API helpers (if any)
 ├── prisma/
-│   ├── schema.prisma        # Prisma Next contract (source of truth)
-│   ├── schema.d.ts          # Generated types (run `pnpm contract:emit`)
-│   ├── schema.json          # Generated contract JSON
-│   └── db.ts                # postgres<Contract> runtime client
+│   ├── schema.prisma           # Prisma Next contract (source of truth)
+│   ├── schema.d.ts             # Generated types (run `pnpm contract:emit`)
+│   ├── schema.json             # Generated contract JSON
+│   └── db.ts                   # postgres<Contract> runtime client
 ├── validations/
-│   ├── auth.schema.ts       # registerSchema, loginSchema, changePasswordSchema
-│   └── profile.schema.ts    # updateProfileSchema
+│   ├── auth.schema.ts          # registerSchema, loginSchema, changePasswordSchema, forgotPasswordSchema, resetPasswordSchema
+│   └── profile.schema.ts       # updateProfileSchema
 ├── types/
-│   └── auth.ts              # AuthTokenPayload interface
-├── migrations/              # Prisma Next migration artifacts
-│   ├── app/refs/db.json     # Current migration ref
-│   └── snapshots/<hash>/    # Contract snapshots
-├── .env.example             # Environment template
-├── .env                     # Local env (gitignored)
+│   └── auth.ts                 # AuthTokenPayload interface
+├── migrations/                 # Prisma Next migration artifacts
+│   ├── app/refs/db.json        # Current migration ref
+│   └── snapshots/<hash>/       # Contract snapshots
+├── .env.example                # Environment template
+├── .env                        # Local env (gitignored)
 ├── package.json
 ├── tsconfig.json
 ├── next.config.ts
@@ -119,6 +134,8 @@ auth-system/
 - **Node.js** ≥ 20
 - **pnpm** ≥ 11 (or enable corepack: `corepack enable`)
 - **PostgreSQL** ≥ 15 (local or managed — Supabase, Neon, Railway, etc.)
+- **Resend Account** — for email delivery (get key at resend.com)
+- **Cloudinary Account** — for image uploads (optional, for profile images)
 
 ---
 
@@ -157,8 +174,13 @@ REFRESH_TOKEN_EXPIRES_IN="7d"
 # Resend (email delivery) — get key at resend.com
 RESEND_API_KEY="re_xxxxxxxxxxxxx"
 
-# Frontend URL for verification links
+# Frontend URL for verification/reset links
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
+
+# Cloudinary (for profile image uploads)
+CLOUDINARY_CLOUD_NAME="your-cloud-name"
+CLOUDINARY_API_KEY="your-api-key"
+CLOUDINARY_API_SECRET="your-api-secret"
 ```
 
 > **Tip:** Generate strong secrets:
@@ -208,13 +230,16 @@ Open [http://localhost:3000](http://localhost:3000).
 | `POST` | `/api/auth/verify-email` | Verify email token (`{ token }`) | — |
 | `POST` | `/api/auth/resend-verification` | Resend verification email (`{ email }`) | — |
 | `POST` | `/api/auth/refresh` | Rotate access + refresh tokens | ✓ (refresh cookie) |
+| `POST` | `/api/auth/forgot-password` | Request password reset email (`{ email }`) | — |
+| `POST` | `/api/auth/reset-password` | Reset password (`{ token, newPassword, confirmNewPassword }`) | — |
 
 ### User Endpoints
 
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
+| `GET` | `/api/users/me` | Lightweight current user check | ✓ (access cookie) |
 | `GET` | `/api/users/profile` | Get current user profile | ✓ (access cookie) |
-| `PATCH` | `/api/users/profile` | Update name/username (`{ name?, username? }`) | ✓ |
+| `PATCH` | `/api/users/profile` | Update name/username/image (`{ name?, username?, image?, imagePublicId? }`) | ✓ |
 | `PATCH` | `/api/users/change-password` | Change password (`{ currentPassword, newPassword, confirmNewPassword }`) | ✓ |
 
 ### Admin Endpoints
@@ -222,6 +247,12 @@ Open [http://localhost:3000](http://localhost:3000).
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
 | `GET` | `/api/admin/users` | Admin-only demo endpoint | ✓ (ADMIN role) |
+
+### Upload Endpoints
+
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| `GET` | `/api/upload/signature` | Get Cloudinary upload signature | ✓ (access cookie) |
 
 ---
 
@@ -280,6 +311,20 @@ curl -X POST http://localhost:3000/api/auth/refresh \
 curl http://localhost:3000/api/users/profile -b cookies.txt
 ```
 
+### Update Profile (with image)
+
+```bash
+curl -X PATCH http://localhost:3000/api/users/profile \
+  -H "Content-Type: application/json" \
+  -b cookies.txt \
+  -d '{
+    "name": "John Updated",
+    "username": "johnupdated",
+    "image": "https://res.cloudinary.com/.../image.jpg",
+    "imagePublicId": "auth-system/profile-images/abc123"
+  }'
+```
+
 ### Change Password
 
 ```bash
@@ -291,6 +336,32 @@ curl -X PATCH http://localhost:3000/api/users/change-password \
     "newPassword": "NewSecureP@ss456",
     "confirmNewPassword": "NewSecureP@ss456"
   }'
+```
+
+### Forgot Password
+
+```bash
+curl -X POST http://localhost:3000/api/auth/forgot-password \
+  -H "Content-Type: application/json" \
+  -d '{"email": "john@example.com"}'
+```
+
+### Reset Password
+
+```bash
+curl -X POST http://localhost:3000/api/auth/reset-password \
+  -H "Content-Type: application/json" \
+  -d '{
+    "token": "reset-token-from-email",
+    "newPassword": "NewSecureP@ss456",
+    "confirmNewPassword": "NewSecureP@ss456"
+  }'
+```
+
+### Get Upload Signature (for Cloudinary direct upload)
+
+```bash
+curl http://localhost:3000/api/upload/signature -b cookies.txt
 ```
 
 ---
@@ -356,6 +427,7 @@ model RefreshToken {
 - **Indexes** — `userId` indexed on all token tables for fast lookups
 - **Timestamps** — `TimestamptzString` (PostgreSQL `timestamptz`) with ISO strings
 - **Soft Delete Pattern** — `RefreshToken.revoked` + `PasswordResetToken.used`
+- **Profile Images** — `image` (URL) + `imagePublicId` (Cloudinary public_id) for management
 
 ---
 
@@ -428,7 +500,7 @@ pnpm prisma db verify
 
 ### Username Requirements
 
-- 2–30 characters
+- 2–30 characters (register) / 3–30 characters (profile update)
 - Alphanumeric + underscore only
 
 ---
@@ -439,9 +511,11 @@ pnpm prisma db verify
 2. **Click link** → Opens `/verify-email?token=...` → calls `/api/auth/verify-email`
 3. **Login** → Cookies set
 4. **Access `/api/users/profile`** → Returns user data
-5. **Wait 15+ min** → Access token expires
-6. **Call any protected route** → Auto-refresh via `/api/auth/refresh`
-7. **Change password** → All refresh tokens revoked, re-login required
+5. **Upload profile image** → Get signature from `/api/upload/signature`, upload to Cloudinary, update profile with `image` + `imagePublicId`
+6. **Wait 15+ min** → Access token expires
+7. **Call any protected route** → Auto-refresh via `/api/auth/refresh`
+8. **Forgot password** → Request reset email → Click link → Reset password
+9. **Change password** → All refresh tokens revoked, re-login required
 
 ---
 
@@ -461,6 +535,7 @@ Ensure all `.env` vars are set in your deployment platform (Vercel, Railway, etc
 - `ACCESS_TOKEN_SECRET` / `REFRESH_TOKEN_SECRET` — strong random strings
 - `RESEND_API_KEY` — production Resend key
 - `NEXT_PUBLIC_APP_URL` — your production domain (e.g., `https://app.example.com`)
+- `CLOUDINARY_CLOUD_NAME` / `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET` — for image uploads
 - `NODE_ENV=production` — enables `secure: true` on cookies
 
 ### Database Migrations (CI/CD)
@@ -482,6 +557,8 @@ pnpm prisma migrate deploy
 | Cookies not set | `secure: true` on localhost | Use `lvh.me:3000` or set `NODE_ENV=development` |
 | Email not sent | Invalid `RESEND_API_KEY` | Verify key at resend.com, check domain verification |
 | `AuthError: Authentication required` | Access token expired/missing | Call `/api/auth/refresh` or re-login |
+| Image upload fails | Missing Cloudinary config | Add `CLOUDINARY_*` env vars |
+| Old image not deleted | Cloudinary API error | Check Cloudinary credentials, errors logged to console |
 
 ---
 
@@ -491,6 +568,7 @@ pnpm prisma migrate deploy
 - [Next.js App Router](https://nextjs.org/docs/app) — Framework conventions
 - [Zod](https://zod.dev/) — Schema validation
 - [Resend](https://resend.com/docs) — Email API
+- [Cloudinary](https://cloudinary.com/documentation) — Image management
 - [jsonwebtoken](https://github.com/auth0/node-jsonwebtoken) — JWT implementation
 
 ---
