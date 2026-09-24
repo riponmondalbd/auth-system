@@ -6,25 +6,26 @@ A production-ready authentication system built with **Next.js 16 (App Router)**,
 
 ## 🚀 Tech Stack
 
-| Layer | Technology |
-|-------|------------|
-| **Framework** | Next.js 16.3.4 (App Router) |
-| **Runtime** | React 19.2.8 |
-| **Database** | PostgreSQL ≥ 15 |
-| **ORM** | Prisma 8 (Prisma Next) — contract-first, typed SQL + ORM |
-| **Validation** | Zod 4.5 |
-| **Auth** | JWT (jsonwebtoken) + bcrypt (12 rounds) |
-| **Email** | Resend |
-| **Image Upload** | Cloudinary |
-| **Styling** | Tailwind CSS 4 |
-| **Language** | TypeScript 5 (strict) |
-| **Package Manager** | pnpm 11.20 |
+| Layer               | Technology                                               |
+| ------------------- | -------------------------------------------------------- |
+| **Framework**       | Next.js 16.3.4 (App Router)                              |
+| **Runtime**         | React 19.2.8                                             |
+| **Database**        | PostgreSQL ≥ 15                                          |
+| **ORM**             | Prisma 8 (Prisma Next) — contract-first, typed SQL + ORM |
+| **Validation**      | Zod 4.5                                                  |
+| **Auth**            | JWT (jsonwebtoken) + bcrypt (12 rounds)                  |
+| **Email**           | Resend                                                   |
+| **Image Upload**    | Cloudinary                                               |
+| **Styling**         | Tailwind CSS 4                                           |
+| **Language**        | TypeScript 5 (strict)                                    |
+| **Package Manager** | pnpm 11.20                                               |
 
 ---
 
 ## ✨ Features
 
 ### Authentication
+
 - **User Registration** — name, username, email, strong password (Zod validated)
 - **Email Verification** — 30-minute expiring tokens sent via Resend
 - **Login** — email + password, returns HttpOnly secure cookies
@@ -33,11 +34,13 @@ A production-ready authentication system built with **Next.js 16 (App Router)**,
 - **Session Persistence** — cookies survive browser restarts
 
 ### Password Management
+
 - **Forgot Password** — request reset email with 30-minute expiring token
 - **Reset Password** — secure token validation, revokes all refresh tokens on change
 - **Change Password** — authenticated users can change password with current password verification
 
 ### Security
+
 - **Password Hashing** — bcrypt with 12 salt rounds
 - **JWT Signing** — separate secrets for access/refresh tokens
 - **HttpOnly Cookies** — `secure`, `sameSite: lax`, path-scoped
@@ -46,11 +49,13 @@ A production-ready authentication system built with **Next.js 16 (App Router)**,
 - **Rate-Limit Ready** — token hashing (SHA-256) prevents DB token leakage
 
 ### Authorization
+
 - **Role-Based Access** — `USER` | `ADMIN` enum
 - **Protected Routes** — `requireAuth()` and `requireRole("ADMIN")` helpers
 - **Admin Endpoint** — `/api/admin/users` (demo)
 
 ### User Management
+
 - **Profile** — GET/PATCH `/api/users/profile` (name, username, image, imagePublicId)
 - **Current User** — GET `/api/users/me` (lightweight current user check)
 - **Change Password** — PATCH `/api/users/change-password` with current password verification
@@ -58,6 +63,7 @@ A production-ready authentication system built with **Next.js 16 (App Router)**,
 - **Profile Image Upload** — Cloudinary signed upload with automatic old image cleanup
 
 ### Developer Experience
+
 - **Contract-First Prisma** — `prisma/schema.prisma` → `prisma/schema.d.ts` + `schema.json`
 - **Typed Database Client** — `db.orm.public.User`, `db.sql` query builder
 - **Zod Schemas** — shared validation (`validations/`)
@@ -144,7 +150,7 @@ auth-system/
 ### 1. Clone & Install
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/riponmondalbd/auth-system
 cd auth-system
 pnpm install
 ```
@@ -184,6 +190,7 @@ CLOUDINARY_API_SECRET="your-api-secret"
 ```
 
 > **Tip:** Generate strong secrets:
+>
 > ```bash
 > openssl rand -base64 32
 > ```
@@ -204,6 +211,7 @@ pnpm prisma db verify
 ```
 
 > **Note:** The `prisma` CLI in this project is Prisma Next (`prisma@8.0.0-rc.12`). Commands differ from Prisma ORM 7.
+>
 > - `prisma contract emit` — generates `schema.d.ts` + `schema.json` from `schema.prisma`
 > - `prisma migrate dev` — plans & applies migrations from contract changes
 > - `prisma db push` — not used; use `migrate dev` instead
@@ -222,37 +230,37 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ### Auth Endpoints
 
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| `POST` | `/api/auth/register` | Register new user, send verification email | — |
-| `POST` | `/api/auth/login` | Login, set access + refresh cookies | — |
-| `POST` | `/api/auth/logout` | Revoke refresh token, clear cookies | ✓ (refresh cookie) |
-| `POST` | `/api/auth/verify-email` | Verify email token (`{ token }`) | — |
-| `POST` | `/api/auth/resend-verification` | Resend verification email (`{ email }`) | — |
-| `POST` | `/api/auth/refresh` | Rotate access + refresh tokens | ✓ (refresh cookie) |
-| `POST` | `/api/auth/forgot-password` | Request password reset email (`{ email }`) | — |
-| `POST` | `/api/auth/reset-password` | Reset password (`{ token, newPassword, confirmNewPassword }`) | — |
+| Method | Endpoint                        | Description                                                   | Auth               |
+| ------ | ------------------------------- | ------------------------------------------------------------- | ------------------ |
+| `POST` | `/api/auth/register`            | Register new user, send verification email                    | —                  |
+| `POST` | `/api/auth/login`               | Login, set access + refresh cookies                           | —                  |
+| `POST` | `/api/auth/logout`              | Revoke refresh token, clear cookies                           | ✓ (refresh cookie) |
+| `POST` | `/api/auth/verify-email`        | Verify email token (`{ token }`)                              | —                  |
+| `POST` | `/api/auth/resend-verification` | Resend verification email (`{ email }`)                       | —                  |
+| `POST` | `/api/auth/refresh`             | Rotate access + refresh tokens                                | ✓ (refresh cookie) |
+| `POST` | `/api/auth/forgot-password`     | Request password reset email (`{ email }`)                    | —                  |
+| `POST` | `/api/auth/reset-password`      | Reset password (`{ token, newPassword, confirmNewPassword }`) | —                  |
 
 ### User Endpoints
 
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| `GET` | `/api/users/me` | Lightweight current user check | ✓ (access cookie) |
-| `GET` | `/api/users/profile` | Get current user profile | ✓ (access cookie) |
-| `PATCH` | `/api/users/profile` | Update name/username/image (`{ name?, username?, image?, imagePublicId? }`) | ✓ |
-| `PATCH` | `/api/users/change-password` | Change password (`{ currentPassword, newPassword, confirmNewPassword }`) | ✓ |
+| Method  | Endpoint                     | Description                                                                 | Auth              |
+| ------- | ---------------------------- | --------------------------------------------------------------------------- | ----------------- |
+| `GET`   | `/api/users/me`              | Lightweight current user check                                              | ✓ (access cookie) |
+| `GET`   | `/api/users/profile`         | Get current user profile                                                    | ✓ (access cookie) |
+| `PATCH` | `/api/users/profile`         | Update name/username/image (`{ name?, username?, image?, imagePublicId? }`) | ✓                 |
+| `PATCH` | `/api/users/change-password` | Change password (`{ currentPassword, newPassword, confirmNewPassword }`)    | ✓                 |
 
 ### Admin Endpoints
 
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| `GET` | `/api/admin/users` | Admin-only demo endpoint | ✓ (ADMIN role) |
+| Method | Endpoint           | Description              | Auth           |
+| ------ | ------------------ | ------------------------ | -------------- |
+| `GET`  | `/api/admin/users` | Admin-only demo endpoint | ✓ (ADMIN role) |
 
 ### Upload Endpoints
 
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| `GET` | `/api/upload/signature` | Get Cloudinary upload signature | ✓ (access cookie) |
+| Method | Endpoint                | Description                     | Auth              |
+| ------ | ----------------------- | ------------------------------- | ----------------- |
+| `GET`  | `/api/upload/signature` | Get Cloudinary upload signature | ✓ (access cookie) |
 
 ---
 
@@ -272,6 +280,7 @@ curl -X POST http://localhost:3000/api/auth/register \
 ```
 
 **Response (201):**
+
 ```json
 {
   "success": true,
@@ -449,14 +458,14 @@ pnpm prisma db verify
 
 ### Migration Commands
 
-| Command | Purpose |
-|---------|---------|
-| `pnpm contract:emit` | Generate `schema.d.ts` + `schema.json` from `schema.prisma` |
-| `pnpm prisma migrate dev --name <name>` | Plan & apply migration in dev |
-| `pnpm prisma migrate deploy` | Apply pending migrations (CI/prod) |
-| `pnpm prisma migrate status` | Show migration status |
-| `pnpm prisma db verify` | Verify DB matches contract |
-| `pnpm prisma db schema` | Introspect DB → print contract |
+| Command                                 | Purpose                                                     |
+| --------------------------------------- | ----------------------------------------------------------- |
+| `pnpm contract:emit`                    | Generate `schema.d.ts` + `schema.json` from `schema.prisma` |
+| `pnpm prisma migrate dev --name <name>` | Plan & apply migration in dev                               |
+| `pnpm prisma migrate deploy`            | Apply pending migrations (CI/prod)                          |
+| `pnpm prisma migrate status`            | Show migration status                                       |
+| `pnpm prisma db verify`                 | Verify DB matches contract                                  |
+| `pnpm prisma db schema`                 | Introspect DB → print contract                              |
 
 ### Contract Artifacts (committed)
 
@@ -531,6 +540,7 @@ pnpm start
 ### Environment Variables (Production)
 
 Ensure all `.env` vars are set in your deployment platform (Vercel, Railway, etc.):
+
 - `DATABASE_URL` — managed Postgres URL
 - `ACCESS_TOKEN_SECRET` / `REFRESH_TOKEN_SECRET` — strong random strings
 - `RESEND_API_KEY` — production Resend key
@@ -549,16 +559,16 @@ pnpm prisma migrate deploy
 
 ## 🐛 Troubleshooting
 
-| Issue | Cause | Fix |
-|-------|-------|-----|
-| `DATABASE_URL` not found | `.env` missing or malformed | Check `.env` exists, no quotes around URL |
-| `contract emit` fails | Schema syntax error | Fix `schema.prisma`, re-run |
-| Migration fails | DB drift / failed migration | `prisma migrate status`, resolve manually |
-| Cookies not set | `secure: true` on localhost | Use `lvh.me:3000` or set `NODE_ENV=development` |
-| Email not sent | Invalid `RESEND_API_KEY` | Verify key at resend.com, check domain verification |
-| `AuthError: Authentication required` | Access token expired/missing | Call `/api/auth/refresh` or re-login |
-| Image upload fails | Missing Cloudinary config | Add `CLOUDINARY_*` env vars |
-| Old image not deleted | Cloudinary API error | Check Cloudinary credentials, errors logged to console |
+| Issue                                | Cause                        | Fix                                                    |
+| ------------------------------------ | ---------------------------- | ------------------------------------------------------ |
+| `DATABASE_URL` not found             | `.env` missing or malformed  | Check `.env` exists, no quotes around URL              |
+| `contract emit` fails                | Schema syntax error          | Fix `schema.prisma`, re-run                            |
+| Migration fails                      | DB drift / failed migration  | `prisma migrate status`, resolve manually              |
+| Cookies not set                      | `secure: true` on localhost  | Use `lvh.me:3000` or set `NODE_ENV=development`        |
+| Email not sent                       | Invalid `RESEND_API_KEY`     | Verify key at resend.com, check domain verification    |
+| `AuthError: Authentication required` | Access token expired/missing | Call `/api/auth/refresh` or re-login                   |
+| Image upload fails                   | Missing Cloudinary config    | Add `CLOUDINARY_*` env vars                            |
+| Old image not deleted                | Cloudinary API error         | Check Cloudinary credentials, errors logged to console |
 
 ---
 
